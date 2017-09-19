@@ -40,6 +40,7 @@ class Network:
         return totat_cost, jacobian
 
     def train(self, epoch, eta, mini_batch_size, data):
+        initial_cost = 0;
         for e in range(epoch):
             np.random.shuffle(data)
             mini_batch = data[:mini_batch_size]
@@ -48,11 +49,10 @@ class Network:
 
             cost, jacobian = self.feed_forward(x_mini_batch, y_mini_batch)
             self.features -= eta * jacobian
-            print cost, "\n"
+            # print jacobian
+            if e == 0:
+                initial_cost = cost
+            print "epoch ", e,"cost = ", cost, "\n"
+        print"initial cost was :", initial_cost, "\n"
+        return self.features
 
-
-n = Network(3, 4)
-# n.forward(np.array([0,1,0]))
-# n.feed_forward(np.array([(0,1,1),(0,1,1),(0,1,1)]), np.array([(1,1,0),(1,0,1),(0,1,1)]))
-data = np.array([(0, 1, 1, 0, 1, 0), (0, 0, 1, 0, 0, 1), (1, 1, 1, 0, 1, 1)])
-n.train(20000, 0.3, 3, data)
