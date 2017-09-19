@@ -12,28 +12,28 @@ def cost(y, s):
 
 # returns the jacobian matrix of the features
 # @params features_shape size of the feature matrix
-def features_jacobian(features_shape, y, s, g):
+def features_jacobian(y, s, z, features_shape):
     jacobian = np.zeros((features_shape[0],features_shape[1]))
 
     for n in range(features_shape[0]):
         for m in range(features_shape[1]):
-            jacobian[n][m] = gradient(y,s,g,(n,m))
+            jacobian[n][m] = gradient(y,s,z,(n,m))
     return jacobian
 # calculates the gradient of the cost with respect to the feature(weight) at the last layer[Wnxm]
 # @params index--> 2dim(n*m) index of the feature being calculated
 # @params y--> correct value(class) of the training data
 # @params s--> predicted softmax result
 # @params g--> result on the hidden layer
-def gradient(y, s, g, index):
+def gradient(y, s, z, index):
     t = 0
     for i in range(s.size):
-        part_1 = -y[i]*np.log(np.e)/s[i]
+        part_1 = -y[i]/s[i]
         part_2 = 0
         for j in range(s.size):
             if i==j and j==index[0]:
-                part_2 += s[i]*(1-s[j])* g[index[1]]
+                part_2 += s[i]*(1-s[j])* z[index[1]]
             elif i!=j and j==index[0]:
-                part_2 += -1*s[i]*s[j]*g[index[1]]
+                part_2 += -1*s[i]*s[j]*z[index[1]]
             else:
                 part_2 += 0
         t+= part_1*part_2

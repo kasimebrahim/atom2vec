@@ -22,7 +22,7 @@ class Network:
         z = np.dot(self.weights, _input)
         g = np.dot(self.features, z)
         s = softmax.func(g)
-        # print s
+        # print g
         # print np.sum(s)
         return z, g, s
 
@@ -34,23 +34,25 @@ class Network:
             _y = y.reshape(y.size, 1)
             # print _x, _y
             z, g, s = self.forward(_x)
-            totat_cost+=cross_entropy.cost(_y, s)
-            jacobian += cross_entropy.features_jacobian((self.input_size, self.feature_size), _y, s, g)
+            totat_cost += cross_entropy.cost(_y, s)
+            jacobian += cross_entropy.features_jacobian(_y, s, z, (self.input_size, self.feature_size))
         jacobian / x_mini_batch.size
-        return totat_cost,jacobian
+        return totat_cost, jacobian
 
     def train(self, epoch, eta, mini_batch_size, data):
         for e in range(epoch):
             np.random.shuffle(data)
             mini_batch = data[:mini_batch_size]
-            x_mini_batch = data[:,:self.input_size]
-            y_mini_batch = data[:,self.input_size:]
+            x_mini_batch = data[:, :self.input_size]
+            y_mini_batch = data[:, self.input_size:]
 
             cost, jacobian = self.feed_forward(x_mini_batch, y_mini_batch)
-            self.features+=eta*jacobian
-            print cost,"\n"
-n = Network(3, 2)
-# n.forward(np.array([0,1,2,3,4,5,6,7,8,9]))
+            self.features -= eta * jacobian
+            print cost, "\n"
+
+
+n = Network(3, 4)
+# n.forward(np.array([0,1,0]))
 # n.feed_forward(np.array([(0,1,1),(0,1,1),(0,1,1)]), np.array([(1,1,0),(1,0,1),(0,1,1)]))
-data = np.array([(0,1,1,0,1,0),(0,0,1,0,0,1),(1,1,1,0,1,1)])
-n.train(100, 0.01, 3, data)
+data = np.array([(0, 1, 1, 0, 1, 0), (0, 0, 1, 0, 0, 1), (1, 1, 1, 0, 1, 1)])
+n.train(20000, 0.3, 3, data)
