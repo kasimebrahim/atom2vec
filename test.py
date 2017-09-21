@@ -21,14 +21,16 @@ def get_distance_vector(matrix, i):
         distance_vector[j] = distance
     return distance_vector
 
-n = Network.Network(5, 4)
+n = Network.Network(5, 8)
 data = np.array([(1, 0, 0, 0, 0, 0, 1, 0, 0, 0), (0, 1, 0, 0, 0, 1, 0, 0, 0, 0), (0, 1, 0, 0, 0, 0, 0, 1, 0, 0),
                  (0, 0, 1, 0, 0, 0, 1, 0, 0, 0), \
                  (0, 0, 1, 0, 0, 0, 0, 0, 1, 0), (0, 0, 0, 1, 0, 0, 0, 1, 0, 0), (0, 0, 0, 1, 0, 0, 0, 0, 0, 1),
                  (0, 0, 0, 0, 1, 0, 0, 0, 1, 0)])
-features = n.train(2000, 0.03, 5, data)
+features = n.train(500, 0.1, 8, data)
+
+# distance matrix
 print get_distance_vector(features, 0)
 print get_distance_vector(features, 1)
 print get_distance_vector(features, 2)
 print get_distance_vector(features, 3)
-print get_distance_vector(features, 4)
+print get_distance_vector(features, 4), "\n"

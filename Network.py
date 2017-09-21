@@ -13,46 +13,57 @@ class Network:
         self.input_size = input_size
         self.feature_size = feature_size
 
-        self.weights = np.random.randn(self.feature_size, self.input_size)
-        self.features = np.random.randn(self.input_size, self.feature_size)
+        self.weights_one = np.random.randn(self.feature_size, self.input_size)
+        self.weights_two = np.random.randn(self.input_size, self.feature_size)
 
-        # print self.weights.shape, self.input_size
+        self.features = np.zeros((self.input_size, self.feature_size))
 
     def forward(self, _input):
-        z = np.dot(self.weights, _input)
-        g = np.dot(self.features, z)
+        z = np.dot(self.weights_one, _input)
+        self.features[np.argmax(_input)] = z.reshape(z.size);
+        g = np.dot(self.weights_two, z)
         s = softmax.func(g)
-        # print g
-        # print np.sum(s)
         return z, g, s
 
     def feed_forward(self, x_mini_batch, y_mini_batch):
-        jacobian = np.zeros((self.input_size, self.feature_size))
-        totat_cost = 0;
+        weights_two_jacobian = np.zeros((self.input_size, self.feature_size))
+        weights_one_jacobian = np.zeros((self.feature_size, self.input_size))
+
+        totat_cost = 0
+        counter = 0
+        j=0
         for x, y in zip(x_mini_batch, y_mini_batch):
             _x = x.reshape(x.size, 1)
             _y = y.reshape(y.size, 1)
-            # print _x, _y
+
             z, g, s = self.forward(_x)
+            if s.argmax() == _y.argmax():
+                counter += 1
+            j+=1
+
             totat_cost += cross_entropy.cost(_y, s)
-            jacobian += cross_entropy.features_jacobian(_y, s, z, (self.input_size, self.feature_size))
-        jacobian / x_mini_batch.size
-        return totat_cost, jacobian
+            weights_two_jacobian += cross_entropy.weights_two_jacobian(_y, s, z, (self.input_size, self.feature_size))
+            weights_one_jacobian += cross_entropy.weights_one_jacobian(_y, s, self.weights_two, _x,
+                                                               (self.feature_size, self.input_size))
+
+        weights_two_jacobian = weights_two_jacobian / x_mini_batch.size
+        weights_one_jacobian = weights_one_jacobian / x_mini_batch.size
+        return counter, totat_cost, weights_two_jacobian, weights_one_jacobian
 
     def train(self, epoch, eta, mini_batch_size, data):
         initial_cost = 0;
         for e in range(epoch):
             np.random.shuffle(data)
             mini_batch = data[:mini_batch_size]
-            x_mini_batch = data[:, :self.input_size]
-            y_mini_batch = data[:, self.input_size:]
+            x_mini_batch = mini_batch[:, :self.input_size]
+            y_mini_batch = mini_batch[:, self.input_size:]
 
-            cost, jacobian = self.feed_forward(x_mini_batch, y_mini_batch)
-            self.features -= eta * jacobian
-            # print jacobian
+            counter, cost, weights_two_jacobian, weights_one_jacobian = self.feed_forward(x_mini_batch, y_mini_batch)
+            self.weights_two -= eta * weights_two_jacobian
+            self.weights_one -= eta * weights_one_jacobian
             if e == 0:
                 initial_cost = cost
-            print "epoch ", e,"cost = ", cost, "\n"
+            print "epoch ", e, " cost = ", cost, " correct = ", counter,"\n"
         print"initial cost was :", initial_cost, "\n"
+        # print self.features
         return self.features
-
